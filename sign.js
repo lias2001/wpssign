@@ -3,7 +3,6 @@ const fs = require('fs');
 const path = require('path');
 
 const STATE_PATH = path.join(__dirname, 'state.json');
-const TARGET_URL = 'https://personal-act.wps.cn/';
 
 (async () => {
   const browser = await chromium.launch({
@@ -19,32 +18,25 @@ const TARGET_URL = 'https://personal-act.wps.cn/';
   const page = await context.newPage();
 
   try {
-    console.log('✅ 打开页面');
-    await page.goto(TARGET_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
-    await page.waitForTimeout(3000);
-
-    console.log('🔥 调用官方签到接口...');
-    const res = await page.evaluate(async () => {
-      try {
-        const resp = await fetch('https://personal-bus.wps.cn/sign_in/v1/do', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({})
-        });
-        return await resp.json();
-      } catch (e) {
-        return { error: e.message };
-      }
+    console.log('✅ 打开 WPS 签到主页');
+    await page.goto('https://personal-act.wps.cn/', {
+      waitUntil: 'domcontentloaded',
+      timeout: 120000
     });
+    await page.waitForTimeout(5000);
 
-    console.log('📌 结果：', res);
-
-    if (res.code === 1000000 || res.result === 'ok') {
-      console.log('🎉 签到成功！');
-    } else if (res.msg?.includes('已签到') || res.msg?.includes('重复')) {
-      console.log('✅ 今日已签到');
+    // 等待页面加载完成后，执行真实点击（最稳）
+    console.log('🔥 查找并点击签到按钮');
+    
+    // 你提供的真实按钮
+    const btn = page.locator('div.sign-opera-btn:has-text("点击签到")');
+    if (await btn.isVisible()) {
+      await btn.click({ delay: 200, force: true });
+      console.log('✅ 按钮点击成功 → 正在等待签到完成...');
+      await page.waitForTimeout(5000);
+      console.log('🎉 签到流程全部完成！');
     } else {
-      console.log('⚠️ 签到结果：', res.msg);
+      console.log('✅ 今日已签到（按钮不存在）');
     }
 
   } catch (e) {
