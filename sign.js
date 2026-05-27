@@ -33,10 +33,12 @@ const TARGET_URL = 'https://personal-act.wps.cn/rubik2/portal/HD2025031821201822
       waitUntil: 'domcontentloaded',
       timeout: 120000
     });
-    await page.waitForTimeout(5000); // 给页面加载时间
+    await page.waitForTimeout(5000);
 
-    const signBtn = page.locator('div[data-v-82ca2e75]:text("点击签到")');
-    if (await signBtn.count() > 0) {
+    // 👇 精准匹配新按钮 HTML
+    const signBtn = page.locator('div.sign-opera-btn:has-text("点击签到")');
+
+    if (await signBtn.isVisible()) {
       await signBtn.click({ delay: 300 });
       console.log('✅ 签到成功！');
     } else {
