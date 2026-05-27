@@ -1,43 +1,44 @@
-name: daily-sign
+name: WPS每日签到(7:00)
 
 on:
-  push:
-    branches: [ main ]
   schedule:
-    - cron: '0 1 * * *'
+    - cron: '0 23 * * *'
+  workflow_dispatch:
 
 jobs:
   sign:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Use Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'   # 缓存 node_modules
-
-      # ---------- 关键：缓存 Playwright 浏览器 ----------
-      - name: Cache Playwright browsers
+      - name: 缓存Node依赖
         uses: actions/cache@v4
-        id: playwright-cache
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm
+
+      - name: 缓存Playwright浏览器
+        uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-pw
 
-      - name: Install npm deps
-        run: npm ci
+      - name: 安装Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
 
-      # ---------- 只在缓存没命中时才装浏览器 ----------
-      - name: Install Playwright Browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps chromium
+      - name: 安装依赖
+        run: npm install
 
-      # 缓存命中时只装系统依赖（很快）
-      - name: Install Playwright system deps (cache hit)
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps chromium
+      - name: 安装浏览器
+        run: npx playwright install chromium --with-deps
 
-      - name: Run sign script
+      # 👇 这一步把 Secrets 里的内容写入 state.json
+      - name: 生成state.json
+        env:
+          STATE_JSON: ${{ secrets.STATE_JSON }}
+        run: echo "$STATE_JSON" > state.json
+
+      - name: 执行签到
         run: node sign.js
