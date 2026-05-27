@@ -1,0 +1,6 @@
+# 敏感登录状态
+state.json
+# 浏览器缓存
+pw_cache
+# 临时文件
+login-once.js

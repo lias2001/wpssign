@@ -1,0 +1,6 @@
+{
+  "name": "wps-auto-sign",
+  "dependencies": {
+    "playwright": "^1.42.1"
+  }
+}
