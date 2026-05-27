@@ -1,36 +1,50 @@
-name: Daily Sign
+name: WPS 每日准时签到（7:00 + 浏览器缓存）
 
 on:
-  push:
-    branches: [ main ]
   schedule:
-    - cron: '0 0 * * *'   # UTC 00:00 = 北京时间 08:00
-  workflow_dispatch:      # 允许手动触发测试
+    - cron: '0 23 * * *'   # UTC23:00 = 北京时间07:00 准时运行
+  workflow_dispatch:       # 允许手动触发测试
 
 jobs:
   sign:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
 
     steps:
-      - name: Checkout code
+      - name: 拉取代码
         uses: actions/checkout@v5
 
-      - name: Setup Node.js
+      - name: 缓存 node_modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: 缓存 Playwright 浏览器
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-pw-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-pw-
+
+      - name: 安装 Node.js
         uses: actions/setup-node@v6
         with:
           node-version: 20
 
-      - name: Install dependencies
+      - name: 安装依赖
         run: npm install
 
-      - name: Install Playwright Chromium
+      - name: 安装/更新浏览器（缓存命中时秒过）
         run: npx playwright install chromium --with-deps
 
-      - name: Restore state.json from Secrets
+      - name: 恢复登录状态
         env:
           STATE_JSON: ${{ secrets.STATE_JSON }}
         run: echo "$STATE_JSON" > state.json
 
-      - name: Run sign script
+      - name: 执行签到
         run: node sign.js
