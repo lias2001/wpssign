@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const STATE_PATH = path.join(__dirname, 'state.json');
-const TARGET_URL = 'https://personal-act.wps.cn/rubik2/portal/HD202503182201822/YM2025031821202008';
+const TARGET_URL = 'https://personal-act.wps.cn/';
 
 (async () => {
   const browser = await chromium.launch({
@@ -23,10 +23,7 @@ const TARGET_URL = 'https://personal-act.wps.cn/rubik2/portal/HD202503182201822/
     await page.goto(TARGET_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
     await page.waitForTimeout(3000);
 
-    // ==============================================
-    // 🔥 直接调用 WPS 官方真实签到接口（100% 成功）
-    // ==============================================
-    console.log('🔥 开始调用官方签到接口...');
+    console.log('🔥 调用官方签到接口...');
     const res = await page.evaluate(async () => {
       try {
         const resp = await fetch('https://personal-bus.wps.cn/sign_in/v1/do', {
@@ -36,22 +33,22 @@ const TARGET_URL = 'https://personal-act.wps.cn/rubik2/portal/HD202503182201822/
         });
         return await resp.json();
       } catch (e) {
-        return { error: e.toString() };
+        return { error: e.message };
       }
     });
 
-    console.log('📌 接口返回结果：', res);
+    console.log('📌 结果：', res);
 
     if (res.code === 1000000 || res.result === 'ok') {
-      console.log('🎉 恭喜！WPS 每日签到 **真正成功**！');
-    } else if (res.msg?.includes('重复') || res.msg?.includes('已签到')) {
-      console.log('✅ 今日已签到！');
+      console.log('🎉 签到成功！');
+    } else if (res.msg?.includes('已签到') || res.msg?.includes('重复')) {
+      console.log('✅ 今日已签到');
     } else {
-      console.log('⚠️ 签到失败：', res.msg);
+      console.log('⚠️ 签到结果：', res.msg);
     }
 
   } catch (e) {
-    console.error('❌ 异常：', e.message);
+    console.error('❌ 错误：', e.message);
   } finally {
     await browser.close();
   }
