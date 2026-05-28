@@ -19,7 +19,7 @@ const STATE_PATH = path.join(__dirname, 'state.json');
 
   try {
     console.log('✅ 打开 WPS 签到主页');
-    await page.goto('https://personal-act.wps.cn/', {
+    await page.goto('https://personal-act.wps.cn/rubik2/portal/HD2025031821201822/YM2025031821202008?cs_from=web_vipcenter_banner_inpublic&mk_key=JkVKmMVj6h1ZuPwEIlZmVef5hIIZ0Em91FRo&position=pc_aty_ban3_kaixue_test_b', {
       waitUntil: 'domcontentloaded',
       timeout: 120000
     });
