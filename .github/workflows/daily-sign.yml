@@ -3,6 +3,8 @@ name: WPS每日准时签到(7:00)
 on:
   schedule:
     - cron: '0 23 * * *'
+    - cron: '00 10 * * *'
+    - cron: '00 00 * * *'
   workflow_dispatch:
 
 jobs:
