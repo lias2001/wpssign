@@ -7,20 +7,25 @@ on:
 
 jobs:
   sign:
-    runs-on: ubuntu-latest
+    # 关键修复：ubuntu-latest 已滚动到 26.04，而当前 Playwright 版本不支持 26.04
+    # 显式锁定 24.04，长期可用
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
-
-      - name: 缓存 Playwright 浏览器
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright
 
       - name: 安装 Node.js
         uses: actions/setup-node@v6
         with:
           node-version: 20
+
+      # 缓存 key 加入 runner 版本 + 锁文件哈希，避免换镜像/换 Playwright 版本后命中脏缓存
+      - name: 缓存 Playwright 浏览器
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-24.04-playwright-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-24.04-playwright-
 
       - name: 安装依赖
         run: npm install
